@@ -1,0 +1,35 @@
+name: Compactar rodapé do relatório impresso
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/compact-print-footer.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compactar rodapé e aproveitar a segunda página
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          s=s.replace('@page{size:A4;margin:0 0 22mm 0}','@page{size:A4;margin:0 0 8mm 0}')
+          s=s.replace('.rel-rodape{position:static;border-top:1px solid #6b7280;margin-top:12mm;padding-top:5px;color:#8a8f98;font-size:7.5px;line-height:1.35;break-inside:avoid}', '.rel-rodape{position:static;border-top:1px solid #6b7280;margin-top:4mm;padding-top:4px;color:#8a8f98;font-size:6.8px;line-height:1.25;break-inside:avoid}')
+          s=s.replace('.rel-rodape{position:static!important;left:auto!important;right:auto!important;bottom:auto!important;margin-top:12mm!important;page-break-inside:avoid;break-inside:avoid}', '.rel-rodape{position:static!important;left:auto!important;right:auto!important;bottom:auto!important;margin-top:4mm!important;page-break-inside:avoid;break-inside:avoid}')
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Publicar e remover workflow temporário
+        run: |
+          rm .github/workflows/compact-print-footer.yml
+          git config user.name "Hórus Portal Bot"
+          git config user.email "contato@horusservicosenegocios.com.br"
+          git add index.html .github/workflows/compact-print-footer.yml
+          git commit -m "Compacta rodapé e elimina página extra do relatório"
+          git push
