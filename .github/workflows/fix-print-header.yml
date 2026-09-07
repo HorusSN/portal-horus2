@@ -1,0 +1,55 @@
+name: Corrigir cabeçalho do relatório impresso
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/fix-print-header.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Corrigir estrutura de impressão
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+
+          s=s.replace('@page{size:A4;margin:26mm 10mm 25mm 10mm}', '@page{size:A4;margin:0 0 22mm 0}')
+
+          old='@media screen{body{background:#e6eaee}.rel-pagina{width:210mm;min-height:297mm;margin:20px auto;background:#fff;padding:18mm 10mm 25mm;box-shadow:0 2px 14px rgba(0,0,0,.16)}.rel-topo{margin:-18mm -10mm 0}.rel-rodape{position:static;margin-top:18px}.screen-tools{display:block}}'
+          new='@media screen{body{background:#e6eaee}.rel-pagina{width:210mm;min-height:297mm;margin:20px auto;background:#fff;box-shadow:0 2px 14px rgba(0,0,0,.16)}.rel-topo{margin:0}.rel-corpo{padding:12mm 10mm 25mm}.rel-rodape{position:static;margin-top:18px}.screen-tools{display:block}.print-shell{width:100%;border-collapse:collapse}.print-shell>thead>tr>td,.print-shell>tbody>tr>td{padding:0;border:0;text-align:left}}'
+          if old not in s: raise SystemExit('Bloco screen não encontrado')
+          s=s.replace(old,new)
+
+          old='@media print{html,body{background:#fff!important}.screen-tools{display:none}.rel-pagina{padding:0;margin:0;width:auto;min-height:auto;overflow:visible}.rel-topo{position:fixed;z-index:9999;top:-26mm;left:-10mm;right:-10mm;height:22mm;margin:0!important;padding:5mm 17mm 3mm;background:#4593c9!important;color:#fff!important;box-shadow:inset 0 0 0 1000px #4593c9!important}.rel-topo h1,.rel-topo p{color:#fff!important}.rel-identidade{padding-top:0}.rel-topo,.card.destaque,.card.verde,.texto-total,.nota,th,.total td,.pc-fundo,.barra-fundo,.pizza,.cor,.pc-barra,.barra{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}#rel-conteudo{padding-left:0;padding-right:0}.secao{max-width:100%}}'
+          new='@media print{html,body{background:#fff!important}.screen-tools{display:none}.rel-pagina{padding:0;margin:0;width:auto;min-height:auto;overflow:visible}.print-shell{width:100%;border-collapse:collapse}.print-shell>thead{display:table-header-group}.print-shell>tbody{display:table-row-group}.print-shell>thead>tr>td,.print-shell>tbody>tr>td{padding:0;border:0;text-align:left}.rel-topo{margin:0!important;padding:5mm 17mm 4mm;background:#4593c9!important;color:#fff!important;box-shadow:inset 0 0 0 1000px #4593c9!important}.rel-topo h1,.rel-topo p{color:#fff!important}.rel-corpo{padding:10mm 10mm 0}.rel-identidade{padding-top:0}.rel-topo,.card.destaque,.card.verde,.texto-total,.nota,th,.total td,.pc-fundo,.barra-fundo,.pizza,.cor,.pc-barra,.barra{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}#rel-conteudo{padding-left:0;padding-right:0}.secao{max-width:100%}}'
+          if old not in s: raise SystemExit('Bloco print não encontrado')
+          s=s.replace(old,new)
+
+          old='<main class="rel-pagina"><header class="rel-topo"><h1>HÓRUS SERVIÇOS &amp; NEGÓCIOS</h1><p>Sistema de Gestão de Recursos Públicos</p></header><section class="rel-identidade">'
+          new='<main class="rel-pagina"><table class="print-shell"><thead><tr><td><header class="rel-topo"><h1>HÓRUS SERVIÇOS &amp; NEGÓCIOS</h1><p>Sistema de Gestão de Recursos Públicos</p></header></td></tr></thead><tbody><tr><td><div class="rel-corpo"><section class="rel-identidade">'
+          if old not in s: raise SystemExit('Abertura do relatório não encontrada')
+          s=s.replace(old,new)
+
+          old='<footer class="rel-rodape"><div class="linha"><div>Documento gerado eletronicamente a partir de acesso do usuário ao Sistema de Gestão de Recursos Públicos.</div><div>HÓRUS SERVIÇOS &amp; NEGÓCIOS</div></div><div class="rel-assinatura">Assinado eletronicamente por HSN em ${data}, ${hora}.</div></footer></main></body></html>`);'
+          new='<footer class="rel-rodape"><div class="linha"><div>Documento gerado eletronicamente a partir de acesso do usuário ao Sistema de Gestão de Recursos Públicos.</div><div>HÓRUS SERVIÇOS &amp; NEGÓCIOS</div></div><div class="rel-assinatura">Assinado eletronicamente por HSN em ${data}, ${hora}.</div></footer></div></td></tr></tbody></table></main></body></html>`);'
+          if old not in s: raise SystemExit('Fechamento do relatório não encontrado')
+          s=s.replace(old,new)
+
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Publicar correção e remover workflow temporário
+        run: |
+          rm .github/workflows/fix-print-header.yml
+          git config user.name "Hórus Portal Bot"
+          git config user.email "contato@horusservicosenegocios.com.br"
+          git add index.html .github/workflows/fix-print-header.yml
+          git commit -m "Corrige repetição do cabeçalho no PDF sem sobrepor conteúdo"
+          git push
