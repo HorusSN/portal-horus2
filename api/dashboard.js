@@ -195,7 +195,8 @@ export default async function handler(req, res) {
   res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600');
 
   if (req.method === 'GET' && req.query?.acao === 'municipios') {
-    return res.status(200).json({ sucesso: true, municipios: MUNICIPIOS });
+    const municipiosOrdenados = [...MUNICIPIOS].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'base' }));
+    return res.status(200).json({ sucesso: true, municipios: municipiosOrdenados });
   }
 
   if (req.method !== 'GET') {
