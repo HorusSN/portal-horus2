@@ -1,0 +1,40 @@
+name: Ajustar relatório impresso
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/fix-print-layout.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ajustar CSS de impressão
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          s = s.replace('@page{size:A4;margin:12mm 14mm 25mm 14mm}', '@page{size:A4;margin:26mm 10mm 25mm 10mm}')
+          s = s.replace('.rel-topo{background:#4593c9!important;color:#fff!important;padding:16px 17mm 14px;margin:0}', '.rel-topo{background:#4593c9!important;color:#fff!important;padding:16px 17mm 14px;margin:0}')
+          s = s.replace('@media screen{body{background:#e6eaee}.rel-pagina{width:210mm;min-height:297mm;margin:20px auto;background:#fff;padding:12mm 14mm 25mm;box-shadow:0 2px 14px rgba(0,0,0,.16)}.rel-topo{margin:0 -14mm}', '@media screen{body{background:#e6eaee}.rel-pagina{width:210mm;min-height:297mm;margin:20px auto;background:#fff;padding:12mm 10mm 25mm;box-shadow:0 2px 14px rgba(0,0,0,.16)}.rel-topo{margin:0 -10mm}')
+          old = '@media print{.screen-tools{display:none}.rel-pagina{padding:0;margin:0;width:auto;min-height:auto}.rel-topo{margin:0 -14mm;background:#4593c9!important;box-shadow:0 0 0 1000px #4593c9 inset!important}}'
+          new = '@media print{.screen-tools{display:none}.rel-pagina{padding:0;margin:0;width:auto;min-height:auto}.rel-topo{position:fixed;z-index:9999;top:-26mm;left:-10mm;right:-10mm;height:22mm;margin:0;background:#4593c9!important;box-shadow:0 0 0 1000px #4593c9 inset!important}.rel-topo h1,.rel-topo p{color:#fff!important}#rel-conteudo{padding-left:0;padding-right:0}.rel-identidade,.rel-divisor,.rel-titulo{position:relative}.secao{max-width:100%}}'
+          if old not in s:
+              raise SystemExit('Bloco @media print esperado não encontrado')
+          s = s.replace(old, new)
+          p.write_text(s, encoding='utf-8')
+          PY
+      - name: Remover workflow temporário e publicar ajuste
+        run: |
+          rm .github/workflows/fix-print-layout.yml
+          git config user.name "Hórus Portal Bot"
+          git config user.email "contato@horusservicosenegocios.com.br"
+          git add index.html .github/workflows/fix-print-layout.yml
+          git commit -m "Corrige margens e repete cabeçalho em todas as páginas do PDF"
+          git push
