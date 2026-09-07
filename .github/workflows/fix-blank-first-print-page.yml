@@ -1,0 +1,57 @@
+name: Corrigir página inicial em branco na impressão
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/fix-blank-first-print-page.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reestruturar paginação do relatório
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+
+          old="const ano=consulta.ano||$('ano').value;const conteudo=$('resultados').innerHTML;const janela=window.open('','_blank');"
+          new="const ano=consulta.ano||$('ano').value;const secoes=Array.from($('resultados').children).map(el=>el.outerHTML);const linhasSecoes=secoes.map(html=>`<tr class=\"rel-linha-secao\"><td><div class=\"rel-bloco\">${html}</div></td></tr>`).join('');const janela=window.open('','_blank');"
+          if old not in s:
+              raise SystemExit('Trecho de conteúdo não encontrado')
+          s=s.replace(old,new,1)
+
+          old_css="@media screen{body{background:#e6eaee}.rel-pagina{width:210mm;min-height:297mm;margin:20px auto;background:#fff;box-shadow:0 2px 14px rgba(0,0,0,.16)}.rel-topo{margin:0}.rel-corpo{padding:12mm 10mm 25mm}.rel-rodape{position:static;margin-top:18px}.screen-tools{display:block}.print-shell{width:100%;border-collapse:collapse}.print-shell>thead>tr>td,.print-shell>tbody>tr>td{padding:0;border:0;text-align:left}}"
+          new_css="@media screen{body{background:#e6eaee}.rel-pagina{width:210mm;min-height:297mm;margin:20px auto;background:#fff;box-shadow:0 2px 14px rgba(0,0,0,.16)}.rel-topo{margin:0}.rel-intro{padding:12mm 10mm 0}.rel-bloco{padding:0 10mm}.rel-footer-wrap{padding:0 10mm 25mm}.rel-rodape{position:static;margin-top:18px}.screen-tools{display:block}.print-shell{width:100%;border-collapse:collapse}.print-shell>thead>tr>td,.print-shell>tbody>tr>td{padding:0;border:0;text-align:left}}"
+          if old_css not in s:
+              raise SystemExit('CSS screen esperado não encontrado')
+          s=s.replace(old_css,new_css,1)
+
+          old_print=".rel-topo h1,.rel-topo p{color:#fff!important}.rel-corpo{padding:10mm 10mm 0}.rel-identidade{padding-top:0}.rel-topo,.card.destaque"
+          new_print=".rel-topo h1,.rel-topo p{color:#fff!important}.rel-intro{padding:10mm 10mm 0}.rel-bloco{padding:0 10mm}.rel-footer-wrap{padding:0 10mm}.rel-linha-secao{break-inside:auto;page-break-inside:auto}.rel-identidade{padding-top:0}.rel-topo,.card.destaque"
+          if old_print not in s:
+              raise SystemExit('CSS print esperado não encontrado')
+          s=s.replace(old_print,new_print,1)
+
+          old_html='''<tbody><tr><td><div class="rel-corpo"><section class="rel-identidade"><h2>Fundo Municipal de Saúde (FMS)</h2><div class="municipio">${escapeHtml(municipio)}${estado?' - '+escapeHtml(estado):''}</div><div class="emissao">Documento emitido em: ${data}, às ${hora}</div></section><div class="rel-divisor"></div><section class="rel-titulo"><h3>ANÁLISE FINANCEIRA DAS INFORMAÇÕES DO SIOPS</h3><p>${escapeHtml(periodo)} de ${escapeHtml(ano)}</p></section><div id="rel-conteudo">${conteudo}</div><footer class="rel-rodape"><div class="linha"><div>Documento gerado eletronicamente a partir de acesso do usuário ao Sistema de Gestão de Recursos Públicos.</div><div>HÓRUS SERVIÇOS &amp; NEGÓCIOS</div></div><div class="rel-assinatura">Assinado eletronicamente por HSN em ${data}, ${hora}.</div></footer></div></td></tr></tbody>'''
+          new_html='''<tbody><tr class="rel-linha-intro"><td><div class="rel-intro"><section class="rel-identidade"><h2>Fundo Municipal de Saúde (FMS)</h2><div class="municipio">${escapeHtml(municipio)}${estado?' - '+escapeHtml(estado):''}</div><div class="emissao">Documento emitido em: ${data}, às ${hora}</div></section><div class="rel-divisor"></div><section class="rel-titulo"><h3>ANÁLISE FINANCEIRA DAS INFORMAÇÕES DO SIOPS</h3><p>${escapeHtml(periodo)} de ${escapeHtml(ano)}</p></section></div></td></tr>${linhasSecoes}<tr class="rel-linha-rodape"><td><div class="rel-footer-wrap"><footer class="rel-rodape"><div class="linha"><div>Documento gerado eletronicamente a partir de acesso do usuário ao Sistema de Gestão de Recursos Públicos.</div><div>HÓRUS SERVIÇOS &amp; NEGÓCIOS</div></div><div class="rel-assinatura">Assinado eletronicamente por HSN em ${data}, ${hora}.</div></footer></div></td></tr></tbody>'''
+          if old_html not in s:
+              raise SystemExit('Estrutura HTML do relatório não encontrada')
+          s=s.replace(old_html,new_html,1)
+
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Publicar correção
+        run: |
+          rm .github/workflows/fix-blank-first-print-page.yml
+          git config user.name "Hórus Portal Bot"
+          git config user.email "contato@horusservicosenegocios.com.br"
+          git add index.html .github/workflows/fix-blank-first-print-page.yml
+          git commit -m "Corrige página inicial em branco no relatório impresso"
+          git push
