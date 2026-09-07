@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Portal Hórus — Dashboard SIOPS</title>
+<title>HÓRUS SERVIÇOS &amp; NEGÓCIOS — Sistema de Gestão de Recursos Públicos</title>
 <style>
 :root{--azul:#17375e;--azul2:#244b76;--azul-claro:#edf3f8;--verde:#17856f;--verde-claro:#eaf7f3;--cinza:#64748b;--fundo:#f5f7f9;--borda:#dbe3ea;--texto:#1c2733;--vermelho:#b42318;--azul-dado:#009cff;--verde-dado:#00bf80;--vermelho-dado:#e85151}
 *{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--fundo);color:var(--texto)}
@@ -18,12 +18,12 @@ table{width:100%;border-collapse:collapse;font-size:13px}th{background:#f4f6f8;c
 .financiamento-grade{display:grid;grid-template-columns:1fr 1fr;gap:18px}.fin-caixa{border:1px solid var(--borda);border-radius:10px;padding:16px;background:#fff}.fin-caixa h3{margin:0 0 5px;color:var(--azul);font-size:13px;text-transform:uppercase}.fin-caixa .sub{margin:0 0 14px;color:var(--cinza);font-size:11px;line-height:1.45}.financiamento{display:flex;align-items:center;justify-content:center;gap:30px;min-height:225px}.pizza{width:190px;height:190px;border-radius:50%;background:#edf1f4;position:relative}.pizza:after{content:"";position:absolute;inset:42px;border-radius:50%;background:#fff}.legenda-item{margin:12px 0}.cor{width:12px;height:12px;border-radius:3px;display:inline-block;margin-right:7px}.percapita{display:flex;flex-direction:column;gap:18px;padding:12px 0 4px}.pc-linha{display:grid;grid-template-columns:130px 1fr 180px;gap:10px;align-items:center;font-size:12px}.pc-nome{font-weight:700;color:var(--texto)}.pc-fundo{height:26px;background:#edf1f4;border-radius:6px;overflow:hidden}.pc-barra{height:100%;border-radius:6px}.pc-valor{text-align:right;font-weight:700;color:var(--azul)}
 .barras{display:flex;flex-direction:column;gap:12px}.barra-linha{display:grid;grid-template-columns:minmax(150px,210px) 1fr 120px;gap:10px;align-items:center;font-size:12px}.barra-fundo{height:20px;background:#edf1f4;border-radius:5px;overflow:hidden}.barra{height:100%;border-radius:5px}.barra-valor{text-align:right;font-weight:700;color:var(--azul)}
 .historico{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}.hist-card{border:1px solid var(--borda);border-radius:9px;padding:14px}.hist-ano{font-size:13px;font-weight:700;color:var(--cinza)}.hist-pct{margin-top:7px;font-size:22px;font-weight:700;color:var(--azul)}.hist-valor{margin-top:6px;color:var(--cinza);font-size:12px}
-.oculto{display:none}.rodape{color:var(--cinza);font-size:12px;padding:20px 0 40px}
+.oculto{display:none}.rodape{color:var(--cinza);font-size:12px;padding:20px 0 40px}.rodape-divisor{border-top:1px solid var(--borda);margin:18px 0 16px}.rodape-empresa{text-align:center;color:var(--cinza);font-size:11px;line-height:1.5}.rodape-empresa strong{color:var(--cinza)}
 @media(max-width:850px){.filtros,.grade2,.cards,.historico,.financiamento-grade{grid-template-columns:1fr}.wrap{padding:10px}.filtros button{margin-top:0}.financiamento{flex-direction:column}.barra-linha,.pc-linha{grid-template-columns:1fr}.barra-valor,.pc-valor{text-align:left}}
 </style>
 </head>
 <body>
-<header class="topo"><div class="wrap"><h1>Portal Hórus</h1><p>Dashboard SIOPS — análise gerencial de receitas e despesas municipais em saúde</p></div></header>
+<header class="topo"><div class="wrap"><h1>HÓRUS SERVIÇOS &amp; NEGÓCIOS</h1><p>Sistema de Gestão de Recursos Públicos</p></div></header>
 <main class="wrap">
 <div class="filtros"><div class="campo"><label>Município</label><select id="municipio"></select></div><div class="campo"><label>Ano</label><select id="ano"></select></div><div class="campo"><label>Período</label><select id="periodo"><option value="12">1º Bimestre</option><option value="14">2º Bimestre</option><option value="1" selected>3º Bimestre</option><option value="18">4º Bimestre</option><option value="20">5º Bimestre</option><option value="2">6º Bimestre / Anual</option></select></div><div><button id="consultar">CONSULTAR</button></div></div>
 <div id="status" class="status">Carregando municípios...</div>
@@ -35,7 +35,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}th{background:#f4f6f8;c
 <section class="secao"><div class="cab"><h2>DESPESAS TOTAIS EM SAÚDE</h2><p>Despesas totais em saúde efetivamente pagas no período com recursos das três esferas de Governo.</p></div><div class="conteudo"><div class="grade2"><div><table><thead><tr><th>Subfunção</th><th>VALOR PAGO</th></tr></thead><tbody><tr><td>301 — Atenção Básica</td><td id="atencaoBasica">—</td></tr><tr><td>302 — Hospitalar / Ambulatorial</td><td id="hospitalar">—</td></tr><tr><td>303 — Suporte Profilático / Terapêutico</td><td id="suporte">—</td></tr><tr><td>304 — Vigilância Sanitária</td><td id="vigSanitaria">—</td></tr><tr><td>305 — Vigilância Epidemiológica</td><td id="vigEpidemiologica">—</td></tr><tr><td>306 — Alimentação / Nutrição</td><td id="alimentacao">—</td></tr><tr><td>Outras Subfunções</td><td id="outras">—</td></tr><tr class="total"><td>TOTAL DE DESPESAS PAGAS</td><td id="totalDespesas">—</td></tr><tr><td>Valor pago com recursos próprios municipais</td><td id="recursosProprios">—</td></tr><tr><td>Valor pago com recursos do Estado e da União</td><td id="recursosNaoProprios">—</td></tr></tbody></table></div><div id="barras" class="barras"></div></div></div></section>
 <section class="secao"><div class="cab"><h2>APLICAÇÃO DOS ÚLTIMOS 5 ANOS</h2><p>Comparação da aplicação em ASPS no período apurado do ano analisado e no fechamento anual dos exercícios anteriores.</p></div><div class="conteudo"><div id="historico" class="historico"></div><div class="nota">O histórico consulta apresenta exclusivamente para o ano corrente o bimestre apurado nesta análise. Para os anos anteriores são apresentados os valores apurados no 6º bimestre do SIOPS de cada exercício.</div></div></section>
 </div>
-<div class="rodape">Fonte: SIOPS — Ministério da Saúde. Critério geral do painel: receitas realizadas e despesas efetivamente pagas.</div>
+<div class="rodape"><div>Fonte: SIOPS — Ministério da Saúde. Critério geral do painel: receitas realizadas e despesas efetivamente pagas.</div><div class="rodape-divisor"></div><div class="rodape-empresa"><strong>HÓRUS SERVIÇOS &amp; NEGÓCIOS</strong><br>Copyright® 2026 - Todos os Direitos Reservados<br>contato@horusservicosenegocios.com.br<br>(31) 9 8401-5220 - Brasília/DF</div></div>
 </main>
 <script>
 const $=id=>document.getElementById(id);
